@@ -101,6 +101,7 @@ class LennyAgent:
             session=session,
             top_k=top_k,
             similarity_threshold=similarity_threshold,
+            conversation_context=conversation_context,
         )
 
         return AgentResponse(

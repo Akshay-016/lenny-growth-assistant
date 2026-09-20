@@ -52,6 +52,7 @@ class RAGAnswerGenerator:
         session: AsyncSession,
         top_k: int | None = None,
         similarity_threshold: float | None = None,
+        conversation_context: str | None = None,
     ) -> RAGResponse:
         """Generate a grounded answer for a user query."""
 
@@ -110,9 +111,27 @@ Rules:
 9. If the excerpts do not contain enough information, say so.
 10. Be concise and directly useful.
 11. Do not discuss the retrieval process.
+12. Use the conversation context only to understand references,
+    follow-up questions, and the user's intent.
+13. The transcript excerpts remain the only source of factual
+    knowledge.
 
 The application handles source citations separately.
 Do not generate citation numbers in your answer.
+""".strip()
+
+        conversation_section = ""
+
+        if conversation_context and conversation_context.strip():
+            conversation_section = f"""
+CURRENT CONVERSATION CONTEXT
+============================
+
+{conversation_context.strip()}
+
+Use this conversation context only to understand references,
+follow-up questions, and the user's intent. Transcript excerpts
+remain the only source of factual knowledge.
 """.strip()
 
         prompt = f"""
@@ -120,8 +139,10 @@ Answer this question:
 
 {query}
 
+{conversation_section}
+
 Use the following Lenny's Podcast transcript excerpts as your
-only source:
+only source of factual information:
 
 {context}
 

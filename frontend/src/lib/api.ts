@@ -90,13 +90,18 @@ async function request<T>(
   endpoint: string,
   options?: RequestInit,
 ): Promise<T> {
+  const separator = endpoint.includes("?") ? "&" : "?";
+
+  const requestUrl =
+    `${API_BASE_URL}${endpoint}${separator}` +
+    "ngrok-skip-browser-warning=true";
+
   const response = await fetch(
-    `${API_BASE_URL}${endpoint}`,
+    requestUrl,
     {
       ...options,
       headers: {
         "Content-Type": "application/json",
-        "ngrok-skip-browser-warning": "true",
         ...(options?.headers || {}),
       },
     },

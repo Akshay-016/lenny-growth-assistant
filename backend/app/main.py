@@ -52,12 +52,12 @@ app = FastAPI(
 # CORS
 # ============================================================
 
-# Frontend development origin.
-# We will make this configurable later.
+# Frontend development and production origins.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
+        "https://lenny-growth-assistant-sigma.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],

@@ -96,6 +96,7 @@ async function request<T>(
       ...options,
       headers: {
         "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
         ...(options?.headers || {}),
       },
     },

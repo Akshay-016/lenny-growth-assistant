@@ -1,5 +1,4 @@
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_BASE_URL = "";
 
 export interface Session {
   id: string;
@@ -90,14 +89,8 @@ async function request<T>(
   endpoint: string,
   options?: RequestInit,
 ): Promise<T> {
-  const separator = endpoint.includes("?") ? "&" : "?";
-
-  const requestUrl =
-    `${API_BASE_URL}${endpoint}${separator}` +
-    "ngrok-skip-browser-warning=true";
-
   const response = await fetch(
-    requestUrl,
+    `${API_BASE_URL}${endpoint}`,
     {
       ...options,
       headers: {

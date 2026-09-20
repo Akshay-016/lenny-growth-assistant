@@ -2,6 +2,8 @@
 
 A full-stack AI-powered conversational assistant that answers product and growth questions using grounded knowledge from Lenny's Podcast transcripts.
 
+Public repository: https://github.com/Akshay-016/lenny-growth-assistant
+
 The application combines:
 
 - Next.js frontend
@@ -194,7 +196,7 @@ ollama --version
 
 
 
-git clone <YOUR_PUBLIC_GITHUB_REPOSITORY_URL>
+git clone https://github.com/Akshay-016/lenny-growth-assistant.git
 cd lenny-growth-assistant
 
 Python Virtual Environment
@@ -320,9 +322,14 @@ The embedding model produces 768-dimensional vectors, matching the pgvector colu
 
 The application uses Lenny's Podcast transcript content as its knowledge base.
 
-Transcript files are stored under:
+Transcript files are stored locally under:
 
 data/raw/lennys-podcast-transcripts/
+
+The raw transcript corpus is intentionally excluded from Git because it is local
+input data rather than application source code. A fresh clone therefore needs the
+transcript corpus to be placed in this directory before running the ingestion
+pipeline.
 
 The ingestion pipeline:
 
@@ -858,7 +865,7 @@ React 19
 TypeScript
 Tailwind CSS
 React Markdown
-DOMPurify
+DOMPurify (available for sanitization)
 
 Backend
 -------

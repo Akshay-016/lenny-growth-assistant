@@ -41,7 +41,7 @@ dist/
 *.log
 
 # Local model/cache files
-models/
+/models/
 .cache/
 hf_cache/
 
@@ -52,3 +52,6 @@ build/
 # Temporary files
 *.tmp
 *.temp
+
+# Raw transcript corpus
+data/raw/

@@ -7,5 +7,8 @@ asyncpg
 pgvector
 httpx
 python-dotenv
+pyyaml
 pytest
 pytest-asyncio
+claude-agent-sdk
+anthropic

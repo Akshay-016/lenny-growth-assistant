@@ -31,13 +31,31 @@ class MessageResponse(BaseModel):
     content: str
     created_at: datetime
 
-
 class ArtifactCreate(BaseModel):
     session_id: uuid.UUID
     artifact_type: str
     title: str | None = None
     content: str
 
+class ArtifactGenerateRequest(BaseModel):
+    session_id: uuid.UUID
+    artifact_type: str
+    request: str
+    title: str | None = None
+    top_k: int = 5
+    similarity_threshold: float = 0.65
+
+class ArtifactSourceResponse(BaseModel):
+    citation_number: int
+    episode_title: str
+    episode_url: str | None
+    chunk_index: int
+    similarity: float
+
+class ArtifactGenerateResponse(BaseModel):
+    artifact: "ArtifactResponse | None"
+    grounded: bool
+    sources: list[ArtifactSourceResponse]
 
 class ArtifactResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)

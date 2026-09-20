@@ -62,6 +62,29 @@ export interface Artifact {
   created_at: string;
 }
 
+export interface ArtifactSource {
+  citation_number: number;
+  episode_title: string;
+  episode_url: string | null;
+  chunk_index: number;
+  similarity: number;
+}
+
+export interface ArtifactGenerateRequest {
+  session_id: string;
+  artifact_type: string;
+  request: string;
+  title?: string | null;
+  top_k?: number;
+  similarity_threshold?: number;
+}
+
+export interface ArtifactGenerateResponse {
+  artifact: Artifact | null;
+  grounded: boolean;
+  sources: ArtifactSource[];
+}
+
 
 async function request<T>(
   endpoint: string,
@@ -211,5 +234,30 @@ export async function getArtifact(
 ): Promise<Artifact> {
   return request<Artifact>(
     `/api/artifacts/${artifactId}`,
+  );
+}
+
+
+/**
+ * Generate a new grounded artifact from
+ * Lenny's Podcast transcript knowledge base.
+ */
+export async function generateArtifact(
+  requestData: ArtifactGenerateRequest,
+): Promise<ArtifactGenerateResponse> {
+  return request<ArtifactGenerateResponse>(
+    "/api/artifacts/generate",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: requestData.session_id,
+        artifact_type: requestData.artifact_type,
+        request: requestData.request,
+        title: requestData.title ?? null,
+        top_k: requestData.top_k ?? 5,
+        similarity_threshold:
+          requestData.similarity_threshold ?? 0.65,
+      }),
+    },
   );
 }

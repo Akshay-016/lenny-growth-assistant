@@ -91,3 +91,55 @@ Run:
 
 ```cmd
 docker compose up -d db
+# 15. Artifact Generation and Viewer
+
+## TEST-ART-001 - Generate a Grounded Artifact
+
+### Steps
+
+1. Open `http://localhost:3000`.
+2. Select or create a conversation.
+3. In the right-side Artifact panel, click **+ Create Artifact**.
+4. Select an artifact type such as `Framework`.
+5. Enter a title, for example `Product Growth Framework`.
+6. Enter a request based on Lenny's Podcast knowledge.
+7. Click **Generate Artifact**.
+8. Wait for Ollama to complete generation.
+
+### Expected Result
+
+- The artifact is generated successfully.
+- The artifact appears in the Artifact panel.
+- The generated content is grounded in transcript evidence.
+- The artifact viewer displays the generated Markdown content.
+- Source information is returned by the backend.
+- No artifact is created when the retrieval step has insufficient evidence.
+
+## TEST-ART-002 - Artifact API
+
+### Steps
+
+Send a POST request to:
+
+`http://localhost:8000/api/artifacts/generate`
+
+using a valid session ID, artifact type, and grounded request.
+
+### Expected Result
+
+- HTTP `201 Created` is returned for successful generation.
+- The response contains `artifact`, `grounded`, and `sources`.
+- The saved artifact can be retrieved using its artifact ID.
+
+## TEST-ART-003 - Artifact Session Isolation
+
+### Steps
+
+1. Generate an artifact in Session A.
+2. Switch to Session B.
+3. Inspect the Artifact panel.
+
+### Expected Result
+
+- Session B does not display artifacts belonging to Session A.
+- Returning to Session A displays its previously generated artifacts.

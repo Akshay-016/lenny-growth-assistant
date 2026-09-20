@@ -10,6 +10,7 @@ import {
   Message,
   Session,
   createSession,
+  generateArtifact,
   getHealth,
   getSessionArtifacts,
   getSessionMessages,
@@ -38,7 +39,23 @@ export default function HomePage() {
   const [loadingArtifacts, setLoadingArtifacts] =
     useState(false);
 
+  const [generatingArtifact, setGeneratingArtifact] =
+    useState(false);
+
+  const [showArtifactForm, setShowArtifactForm] =
+    useState(false);
+
+  const [artifactType, setArtifactType] =
+    useState("framework");
+
+  const [artifactTitle, setArtifactTitle] =
+    useState("");
+
+  const [artifactRequest, setArtifactRequest] =
+    useState("");
+
   const [input, setInput] = useState("");
+
   const [loadingSessions, setLoadingSessions] =
     useState(true);
 
@@ -183,6 +200,12 @@ export default function HomePage() {
       setSelectedArtifact(null);
 
       setInput("");
+
+      // Clear artifact generation form.
+      setShowArtifactForm(false);
+      setArtifactTitle("");
+      setArtifactRequest("");
+      setArtifactType("framework");
     } catch (err) {
       setError(
         err instanceof Error
@@ -269,6 +292,79 @@ export default function HomePage() {
       );
     } finally {
       setSending(false);
+    }
+  }
+
+  // ---------------------------------------------------------
+  // Generate a grounded artifact from transcript evidence.
+  // ---------------------------------------------------------
+
+  async function handleGenerateArtifact(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    const trimmedRequest = artifactRequest.trim();
+
+    if (
+      !trimmedRequest ||
+      !activeSessionId ||
+      generatingArtifact
+    ) {
+      return;
+    }
+
+    setGeneratingArtifact(true);
+    setError(null);
+
+    try {
+      const response = await generateArtifact({
+        session_id: activeSessionId,
+        artifact_type: artifactType,
+        request: trimmedRequest,
+        title:
+          artifactTitle.trim() ||
+          `${artifactType
+            .replace("_", " ")
+            .replace(/\b\w/g, (letter) =>
+              letter.toUpperCase(),
+            )}`,
+        top_k: 5,
+        similarity_threshold: 0.65,
+      });
+
+      if (!response.grounded || !response.artifact) {
+        setError(
+          "I couldn't find enough relevant transcript evidence to create this artifact reliably.",
+        );
+        return;
+      }
+
+      // Add the newly generated artifact to the beginning
+      // because the backend orders artifacts newest first.
+      setArtifacts((currentArtifacts) => [
+        response.artifact!,
+        ...currentArtifacts.filter(
+          (artifact) =>
+            artifact.id !== response.artifact!.id,
+        ),
+      ]);
+
+      // Immediately show the generated artifact.
+      setSelectedArtifact(response.artifact);
+
+      // Reset the form after successful generation.
+      setArtifactTitle("");
+      setArtifactRequest("");
+      setShowArtifactForm(false);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to generate the artifact.",
+      );
+    } finally {
+      setGeneratingArtifact(false);
     }
   }
 
@@ -681,15 +777,142 @@ export default function HomePage() {
               </p>
             </div>
 
-            {loadingArtifacts && (
-              <span className="text-xs text-[#777771]">
-                Loading...
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              {loadingArtifacts && (
+                <span className="text-xs text-[#777771]">
+                  Loading...
+                </span>
+              )}
+
+              {activeSessionId && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowArtifactForm(
+                      (current) => !current,
+                    )
+                  }
+                  disabled={generatingArtifact}
+                  className="rounded-lg bg-[#171717] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#303030] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {showArtifactForm
+                    ? "Cancel"
+                    : "+ Create Artifact"}
+                </button>
+              )}
+            </div>
 
           </div>
 
         </div>
+
+        {/* Artifact generation form */}
+
+        {showArtifactForm && (
+          <div className="border-b border-[#deded9] bg-[#fafafa] p-4">
+
+            <form
+              onSubmit={handleGenerateArtifact}
+              className="space-y-3"
+            >
+
+              <div>
+                <label
+                  htmlFor="artifact-type"
+                  className="mb-1 block text-xs font-medium text-[#555550]"
+                >
+                  Artifact type
+                </label>
+
+                <select
+                  id="artifact-type"
+                  value={artifactType}
+                  onChange={(event) =>
+                    setArtifactType(event.target.value)
+                  }
+                  disabled={generatingArtifact}
+                  className="w-full rounded-lg border border-[#cfcfca] bg-white px-3 py-2 text-sm outline-none focus:border-[#999994]"
+                >
+                  <option value="framework">
+                    Framework
+                  </option>
+                  <option value="checklist">
+                    Checklist
+                  </option>
+                  <option value="growth_plan">
+                    Growth Plan
+                  </option>
+                  <option value="essay">
+                    Essay
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="artifact-title"
+                  className="mb-1 block text-xs font-medium text-[#555550]"
+                >
+                  Title
+                </label>
+
+                <input
+                  id="artifact-title"
+                  type="text"
+                  value={artifactTitle}
+                  onChange={(event) =>
+                    setArtifactTitle(event.target.value)
+                  }
+                  disabled={generatingArtifact}
+                  placeholder="e.g. Product Growth Framework"
+                  className="w-full rounded-lg border border-[#cfcfca] bg-white px-3 py-2 text-sm outline-none focus:border-[#999994]"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="artifact-request"
+                  className="mb-1 block text-xs font-medium text-[#555550]"
+                >
+                  What should Lenny create?
+                </label>
+
+                <textarea
+                  id="artifact-request"
+                  value={artifactRequest}
+                  onChange={(event) =>
+                    setArtifactRequest(event.target.value)
+                  }
+                  disabled={generatingArtifact}
+                  rows={4}
+                  placeholder="Describe the framework, checklist, plan, or essay you want..."
+                  className="w-full resize-none rounded-lg border border-[#cfcfca] bg-white px-3 py-2 text-sm outline-none focus:border-[#999994]"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={
+                  !activeSessionId ||
+                  !artifactRequest.trim() ||
+                  generatingArtifact
+                }
+                className="w-full rounded-lg bg-[#171717] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#303030] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {generatingArtifact
+                  ? "Generating with Ollama..."
+                  : "Generate Artifact"}
+              </button>
+
+              <p className="text-[11px] leading-4 text-[#888883]">
+                The artifact is generated from relevant
+                Lenny&apos;s Podcast transcript evidence.
+              </p>
+
+            </form>
+
+          </div>
+        )}
 
         {/* Artifact list */}
 
@@ -774,8 +997,9 @@ export default function HomePage() {
                 </h3>
 
                 <p className="mt-2 text-xs leading-5 text-[#777771]">
-                  Create or add an artifact to this
-                  conversation and it will appear here.
+                  Click &quot;+ Create Artifact&quot; above
+                  to generate grounded work from the
+                  transcript knowledge base.
                 </p>
 
               </div>

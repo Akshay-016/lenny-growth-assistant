@@ -110,10 +110,6 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!activeSessionId) {
-      setMessages([]);
-      setCitations([]);
-      setArtifacts([]);
-      setSelectedArtifact(null);
       return;
     }
 
